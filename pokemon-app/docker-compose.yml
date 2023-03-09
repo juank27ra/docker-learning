@@ -39,7 +39,7 @@ services:
     image: klerith/pokemon-nest-app:1.0.0
     ports:
       - 3000:3000
-    environments:
+    environment:
       MONGODB: mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@${MONGO_DB_NAME}:27017
       DB_NAME: ${MONGO_DB_NAME}  
     restart: always
