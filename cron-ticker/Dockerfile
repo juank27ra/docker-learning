@@ -1,32 +1,41 @@
-FROM node:19.2-alpine3.16
-# /app
+#  docker buildx build --platform linux/amd64,linux/arm64,linux/arm/v7 \
+#   -t <username>/<image>:latest --push .
 
-# cd app     nos movemos a este directorio que viene ya preinstalado con node 
+#    docker buildx build --platform linux/amd64,linux/arm64,linux/arm/v7 \
+#   -t juank27/cron-ticker:latest --push .
+
+# FROM --platform=linux/amd64 node:19.2-alpine3.16
+# FROM --platform=$BUILDPLATFORM node:19.2-alpine3.16
+# FROM --platform=arm64 node:19.2-alpine3.16
+# FROM node:19.2-alpine3.16
+FROM --platform=$BUILDPLATFORM node:19.2-alpine3.16 as deps
 WORKDIR /app
-
-
-#    los archivos que quiero copiar y el destino (sourse dest)
-# COPY app.js package.json ./
 COPY package.json ./
-
-# instalar dependencias 
+# instalar dependencias de desarrollo
 RUN npm install
 
-COPY app.js ./
-# copiar todo a 
-COPY . .            
 
-#realizar testing
+FROM --platform=$BUILDPLATFORM node:19.2-alpine3.16 as builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
 RUN npm run test
+# RUN npm run build
 
 
-#eliminar archivos y directorios no necesarios en produccion 
-RUN rm -rf tests && rm -rf node_modules
-
-#uniamente las dependencias de produccion
+FROM --platform=$BUILDPLATFORM node:19.2-alpine3.16 as prod-deps
+WORKDIR /app
+COPY package.json ./
 RUN npm install --prod
 
-# comando run de la imagen 
+
+FROM --platform=$BUILDPLATFORM node:19.2-alpine3.16 as runner
+WORKDIR /app
+# copiar todo lo que está en mi proyecto (basado en el patha del dockerfile) y lo pega en el workdir excluyendo lo que está en el dockerignore
+COPY --from=prod-deps /app/node_modules ./node_modules
+COPY app.js ./
+COPY tasks ./tasks
+# comando run de la imagen o comando con el que vamos a iniciar la imagen 
 CMD ["node", "app.js"]
 
 
