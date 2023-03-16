@@ -7,15 +7,10 @@ services:
     build:
     # dondequiero que busque el archivo del dockerfile ejemplo una carpeta docker o algo así
       context: .
-      # target: dev         para desarrollo
-      target: ${STAGE}      #para produccion
+      target: prod      #para produccion
       dockerfile: Dockerfile
     # command: yarn start:dev           en vez de en el dockerfile tambien se puede acá
-    volumes:
-    # hace el mapeo de nuestro archivo con el app     esto es nuetro bind volumes
-      - .:/app/
-      # un mapeo adicional del host en el directorio, un volumen anónimo
-      - /app/node_modules
+    image: juank27/teslo-shop-backend:2.0.0   # o latest    #para que me de un tag en la image ls sino seria <none>
     container_name: nest-app
     ports:
       - ${PORT}:${PORT}
